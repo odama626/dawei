@@ -1,17 +1,23 @@
 {
   "name": "dawei",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/index.module.js",
   "unpkg": "dist/index.umd.js",
-  "description": "",
-  "keywords": [],
+  "description": "A lightweight state library for react",
+  "keywords": ["state", "react", "atom", "store", "redux", "recoil", "context", "hooks"],
+  "homepage": "https://daweijs.surge.sh/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odama626/dawei.git"
+  },
   "dependencies": {},
   "peerDependencies": {
     "react": "16.13.1",
     "react-dom": "16.13.1"
   },
+  "author": "Adam Sparks <adamsparks92@gmail.com> (https://adamsparks.me)",
   "files": ["dist", "readme.md"],
   "devDependencies": {
     "react": "16.13.1",
@@ -25,7 +31,8 @@
     "start": "react-scripts start",
     "build": "microbundle build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prepublishOnly": "npm run test -- --watchAll=false"
   },
   "browserslist": [
     ">0.2%",
