@@ -1,10 +1,10 @@
 {
   "name": "dawei",
   "version": "0.1.0",
-  "source": "src/dawei.ts",
-  "main": "dist/dawei.js",
-  "module": "dist/dawei.module.js",
-  "unpkg": "dist/dawei.umd.js",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.module.js",
+  "unpkg": "dist/index.umd.js",
   "description": "",
   "keywords": [],
   "dependencies": {},
@@ -12,6 +12,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1"
   },
+  "files": ["dist", "readme.md"],
   "devDependencies": {
     "react": "16.13.1",
     "react-dom": "16.13.1",
@@ -31,5 +32,9 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "prettier": {
+    "singleQuote": true,
+    "arrowParens": "avoid"
+  }
 }

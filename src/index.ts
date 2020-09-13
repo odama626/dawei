@@ -14,9 +14,11 @@ export function create(callback, type) {
   let value = callback;
 
   let updateListeners = () => listeners.forEach(listener => listener(value));
-  let set = update => {
+  let set = async update => {
     let result = update;
-    if (typeof update === 'function') result = update(value);
+    if (typeof update === 'function')
+      result = update(value);
+    result = await Promise.resolve(result);
     if (result !== value) {
       if (typeof value === 'object') {
         Object.assign(value, result);
@@ -31,7 +33,9 @@ export function create(callback, type) {
     let get = atom => {
       if (!atom) return value;
       if (atom && type === 'store')
-        console.warn('you cannot get Atoms inside of a Store. use atom.subscribe() instead');
+        console.warn(
+          'you cannot get Atoms inside of a Store. use atom.subscribe() instead'
+        );
       atom.listeners.push(() => {
         let newValue = callback(() => atom.value, set);
         if (newValue !== value) {
@@ -55,14 +59,15 @@ export function create(callback, type) {
     subscribe: listener => {
       let index = listeners.push(listener);
       Promise.resolve().then(() => listener(value));
-      return () => { listeners.splice(index - 1, 1) };
+      return () => {
+        listeners.splice(index - 1, 1);
+      };
     },
     get: (selector = e => e) => selector(value),
     set,
-    use: e => e
+    use: e => e,
   };
 
-  
   atom.use = function Use(selector = e => e) {
     const [, setValue] = useState();
     useEffect(() => {
