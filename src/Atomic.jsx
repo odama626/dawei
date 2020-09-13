@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStore, createAtom } from '../lib/da-wei';
+import { createStore, createAtom } from './dawei';
 
 const textAtom = createAtom('Hello');
 const upperCaseAtom = createAtom(get => get(textAtom).toUpperCase());

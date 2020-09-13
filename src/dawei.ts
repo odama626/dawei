@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 
+interface DaweiState {
+  listeners: Function[];
+  value: any;
+  subscribe: (listener: Function) => () => void;
+  get: (selector?: Function) => any;
+  set: Function | any;
+  use?: (selector?: Function) => any;
+}
+
 export function create(callback, type) {
-  let listeners = [];
+  let listeners: Function[] = [];
   let value = callback;
 
   let updateListeners = () => listeners.forEach(listener => listener(value));
@@ -35,7 +44,7 @@ export function create(callback, type) {
     value = callback(get, set);
   }
 
-  let atom = {
+  let atom: DaweiState = {
     listeners,
     get value() {
       return value;
@@ -46,13 +55,15 @@ export function create(callback, type) {
     subscribe: listener => {
       let index = listeners.push(listener);
       Promise.resolve().then(() => listener(value));
-      return () => listeners.splice(index - 1, 1);
+      return () => { listeners.splice(index - 1, 1) };
     },
     get: (selector = e => e) => selector(value),
-    set
+    set,
+    use: e => e
   };
 
-  atom.use = (selector = e => e) => {
+  
+  atom.use = function Use(selector = e => e) {
     const [, setValue] = useState();
     useEffect(() => {
       const wrap = () => setValue(s => !s);
