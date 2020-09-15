@@ -12,6 +12,7 @@ interface DaweiState {
 export function create(callback, type) {
   let listeners: Function[] = [];
   let value = callback;
+  let sync = Promise.resolve();
 
   let updateListeners = () => listeners.forEach(listener => listener(value));
   let set = async update => {
@@ -29,6 +30,8 @@ export function create(callback, type) {
     }
   };
 
+  let setInOrder = update => sync = sync.then(() => set(update));
+
   if (typeof callback === 'function') {
     let get = atom => {
       if (!atom) return value;
@@ -39,13 +42,13 @@ export function create(callback, type) {
       atom.listeners.push(() => {
         let newValue = callback(() => atom.value, set);
         if (newValue !== value) {
-          set(() => newValue);
+          setInOrder(() => newValue);
         }
       });
       return atom.value;
     };
 
-    value = callback(get, set);
+    value = callback(get, setInOrder);
   }
 
   let atom: DaweiState = {
@@ -64,7 +67,7 @@ export function create(callback, type) {
       };
     },
     get: (selector = e => e) => selector(value),
-    set,
+    set: setInOrder,
     use: e => e,
   };
 
