@@ -30,7 +30,7 @@ export function create(callback, type) {
     }
   };
 
-  let setInOrder = update => sync = sync.then(() => set(update));
+  let setInOrder = update => sync = sync.then(() => set(update), () => set(update));
 
   if (typeof callback === 'function') {
     let get = atom => {
