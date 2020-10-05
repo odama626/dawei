@@ -8,6 +8,7 @@
   "description": "A lightweight state library for react",
   "keywords": ["state", "react", "atom", "store", "redux", "recoil", "context", "hooks"],
   "homepage": "https://daweijs.surge.sh/",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/odama626/dawei.git"
