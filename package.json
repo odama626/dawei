@@ -6,7 +6,16 @@
   "module": "dist/index.module.js",
   "unpkg": "dist/index.umd.js",
   "description": "A lightweight state library for react",
-  "keywords": ["state", "react", "atom", "store", "redux", "recoil", "context", "hooks"],
+  "keywords": [
+    "state",
+    "react",
+    "atom",
+    "store",
+    "redux",
+    "recoil",
+    "context",
+    "hooks"
+  ],
   "homepage": "https://daweijs.surge.sh/",
   "license": "ISC",
   "repository": {
@@ -19,7 +28,10 @@
     "react-dom": "16.13.1"
   },
   "author": "Adam Sparks <adamsparks92@gmail.com> (https://adamsparks.me)",
-  "files": ["dist", "readme.md"],
+  "files": [
+    "dist",
+    "readme.md"
+  ],
   "devDependencies": {
     "react": "16.13.1",
     "react-dom": "16.13.1",

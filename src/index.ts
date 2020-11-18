@@ -6,7 +6,7 @@ interface DaweiState {
   subscribe: (listener: Function) => () => void;
   get: (selector?: Function) => any;
   set: Function | any;
-  use?: (selector?: Function) => any;
+  use: (selector?: Function) => any;
 }
 
 export function create(callback, type) {
