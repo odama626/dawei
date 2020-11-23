@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-interface DaweiState {
+export interface DaweiState {
   listeners: Function[];
   value: any;
   subscribe: (listener: Function) => () => void;
