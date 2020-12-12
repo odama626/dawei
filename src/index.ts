@@ -1,9 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+export function optionalChain(obj: any, path?: string) {
+  if (!path) return obj;
+  let p = path.split('.');
+  return p.reduce((result, next) => (result ? result[next] : undefined), obj);
+}
+
+export function optionalChainMerge(obj: any, value: any, path?: string) {
+  if (!path) return obj;
+  let p = path.split('.');
+  let key = p.pop() || '';
+  let node = p.reduce(
+    (result, next) => (result ? result[next] : undefined),
+    obj
+  );
+  if (typeof node[key] === 'object') {
+    node[key] = { ...node[key], ...value };
+  } else {
+    node[key] = value;
+  }
+  return obj;
+}
 
 export interface DaweiState {
   listeners: Function[];
   value: any;
-  subscribe: (listener: Function) => () => void;
+  subscribe: (listener: Function, receiveInitial?: boolean) => () => void;
   get: (selector?: Function) => any;
   set: Function | any;
   use: (selector?: Function) => any;
@@ -15,14 +37,26 @@ export function create(callback, type) {
   let sync = Promise.resolve();
 
   let updateListeners = () => listeners.forEach(listener => listener(value));
-  let set = async update => {
+  let set = async (update, path?: string) => {
     let result = update;
-    if (typeof update === 'function')
-      result = update(value);
+    let pathedValue = optionalChain(value, path);
+
+    if (path && typeof value !== 'object') {
+      throw new Error('Cannot path into store when store is not an object');
+    }
+
+    if (path) {
+    }
+
+    if (typeof update === 'function') result = update(pathedValue, value);
     result = await Promise.resolve(result);
-    if (result !== value) {
+    if (result !== pathedValue) {
       if (typeof value === 'object') {
-        Object.assign(value, result);
+        if (path) {
+          optionalChainMerge(value, result, path);
+        } else {
+          Object.assign(value, result);
+        }
       } else {
         value = result;
       }
@@ -30,7 +64,11 @@ export function create(callback, type) {
     }
   };
 
-  let setInOrder = update => sync = sync.then(() => set(update), () => set(update));
+  let setInOrder = (update, path?: string) =>
+    (sync = sync.then(
+      () => set(update, path),
+      () => set(update, path)
+    ));
 
   if (typeof callback === 'function') {
     let get = atom => {
@@ -59,9 +97,9 @@ export function create(callback, type) {
     set value(v) {
       value = v;
     },
-    subscribe: listener => {
+    subscribe: (listener, receiveInitial = true) => {
       let index = listeners.push(listener);
-      Promise.resolve().then(() => listener(value));
+      receiveInitial && Promise.resolve().then(() => listener(value));
       return () => {
         listeners.splice(index - 1, 1);
       };
@@ -72,11 +110,28 @@ export function create(callback, type) {
   };
 
   atom.use = function Use(selector = e => e) {
-    const [, setValue] = useState();
+    const [, setValue] = useState(false);
     useEffect(() => {
       const wrap = () => setValue(s => !s);
-      return atom.subscribe(wrap);
+      return atom.subscribe(wrap, false);
     }, []);
+
+    if (typeof selector === 'string') {
+      return [
+        optionalChain(atom.value, selector),
+        value => atom.set(value, selector),
+      ];
+    }
+
+    if (Array.isArray(selector)) {
+      let values: any[] = [];
+      let setters: any[] = [];
+      selector.forEach(select => {
+        values.push(optionalChain(atom.value, select));
+        setters.push(value => atom.set(value, select));
+      });
+      return [values, setters];
+    }
 
     return [selector(atom.value), atom.set];
   };
