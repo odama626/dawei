@@ -28,7 +28,7 @@ export interface DaweiState {
   subscribe: (listener: Function, receiveInitial?: boolean) => () => void;
   get: (selector?: Function) => any;
   set: Function | any;
-  use: (selector?: Function) => any;
+  use: (selector?: Function | string | string[]) => any;
 }
 
 export function create(callback, type) {
