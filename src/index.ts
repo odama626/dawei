@@ -14,7 +14,7 @@ export function optionalChainMerge(obj: any, value: any, path?: string) {
     (result, next) => (result ? result[next] : undefined),
     obj
   );
-  if (typeof node[key] === 'object') {
+  if (typeof node[key] === 'object' && !Array.isArray(node[key])) {
     node[key] = { ...node[key], ...value };
   } else {
     node[key] = value;

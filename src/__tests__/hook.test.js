@@ -20,6 +20,13 @@ function newComplextStore() {
   });
 }
 
+function newStoreWithArray() {
+  return createStore({
+    name: 'Dawei',
+    arr: [],
+  });
+}
+
 it('Should render hook', async () => {
   const store = newStore();
   const { result } = renderHook(() => store.use());
@@ -103,4 +110,15 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
     age: 1,
     deeply: { nested: { object: { changed: 'Obj', complex: true } } },
   });
+});
+
+it('Should handle arrays with scoped selectors', async () => {
+    const store = newStoreWithArray();
+    const { result } = renderHook(() => store.use('arr'));
+  
+    expect(result.current[0]).toEqual([]);
+    await act(() => result.current[1]([1, 2, 3]));
+    expect(result.current[0]).toEqual([1, 2, 3]);
+    await act(() => result.current[1]([]));
+    expect(result.current[0]).toEqual([]);
 });
