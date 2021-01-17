@@ -73,10 +73,6 @@ export function create(callback, type) {
   if (typeof callback === 'function') {
     let get = atom => {
       if (!atom) return value;
-      if (atom && type === 'store')
-        console.warn(
-          'you cannot get Atoms inside of a Store. use atom.subscribe() instead'
-        );
       atom.listeners.push(() => {
         let newValue = callback(() => atom.value, set);
         if (newValue !== value) {
