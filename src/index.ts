@@ -10,10 +10,10 @@ export function optionalChainMerge(obj: any, value: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   let key = p.pop() || '';
-  let node = p.reduce(
-    (result, next) => (result ? result[next] : undefined),
-    obj
-  );
+  let node = p.reduce((result, next) => {
+    if(!result[next]) result[next] = {};
+    return result ? result[next] : undefined;
+  }, obj);
   if (typeof node[key] === 'object') {
     node[key] = { ...node[key], ...value };
   } else {

@@ -104,3 +104,27 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
     deeply: { nested: { object: { changed: 'Obj', complex: true } } },
   });
 });
+
+it('Should handle deeply nested updates with pathed selectors', async () => {
+  const store = newComplextStore();
+  const all = renderHook(() => store.use()).result;
+  const obj = renderHook(() => store.use('deeply.nested.nonexistant.path'))
+    .result;
+
+  expect(obj.current[0]).toEqual(undefined);
+  await act(() => obj.current[1]('new value'));
+  expect(obj.current[0]).toEqual('new value');
+  expect(all.current[0]).toEqual({
+    age: 1,
+    name: 'Dawei',
+    deeply: { nested: { object: 'test', nonexistant: { path: 'new value' } } },
+  });
+  await act(() => obj.current[1]({ object: 'works' }));
+  expect(all.current[0]).toEqual({
+    age: 1,
+    name: 'Dawei',
+    deeply: {
+      nested: { object: 'test', nonexistant: { path: { object: 'works' } } },
+    },
+  });
+});
