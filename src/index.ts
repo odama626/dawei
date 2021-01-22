@@ -10,10 +10,10 @@ export function optionalChainMerge(obj: any, value: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   let key = p.pop() || '';
-  let node = p.reduce(
-    (result, next) => (result ? result[next] : undefined),
-    obj
-  );
+  let node = p.reduce((result, next) => {
+    if(!result[next]) result[next] = {};
+    return result ? result[next] : undefined;
+  }, obj);
   if (typeof node[key] === 'object' && !Array.isArray(node[key])) {
     node[key] = { ...node[key], ...value };
   } else {
@@ -73,10 +73,6 @@ export function create(callback, type) {
   if (typeof callback === 'function') {
     let get = atom => {
       if (!atom) return value;
-      if (atom && type === 'store')
-        console.warn(
-          'you cannot get Atoms inside of a Store. use atom.subscribe() instead'
-        );
       atom.listeners.push(() => {
         let newValue = callback(() => atom.value, set);
         if (newValue !== value) {

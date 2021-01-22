@@ -1,4 +1,4 @@
-import { createAtom } from '../index';
+import { createStore } from '../index';
 
 const expectSubscriptionSequence = (sequence, done) => {
   let values = sequence.slice();
@@ -8,8 +8,17 @@ const expectSubscriptionSequence = (sequence, done) => {
   };
 };
 
+it(`works like atom`, async () => {
+  const textAtom = createStore('test');
+  const uppercaseAtom = createStore(get => get(textAtom).toUpperCase());
+
+  expect(uppercaseAtom.get()).toEqual('TEST');
+  await textAtom.set('Another test');
+  expect(uppercaseAtom.get()).toEqual('ANOTHER TEST');
+});
+
 it('Async set', done => {
-  const asyncAtom = createAtom({});
+  const asyncAtom = createStore({});
 
   asyncAtom.set(() =>
     fetch('https://jsonplaceholder.typicode.com/posts/1').then(response =>
@@ -36,7 +45,7 @@ it('Async set', done => {
 });
 
 it('Set', done => {
-  const atom = createAtom('test');
+  const atom = createStore('test');
 
   let expected = ['test', 'that', 'this', 'sequence', 'is', 'followed'];
 
@@ -49,7 +58,7 @@ it('Set', done => {
 });
 
 it('Multiple subscriptions', () => {
-  const atom = createAtom('test');
+  const atom = createStore('test');
 
   let expected = ['test', 'that', 'this', 'sequence', 'is', 'followed'];
 

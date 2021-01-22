@@ -113,12 +113,36 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
 });
 
 it('Should handle arrays with scoped selectors', async () => {
-    const store = newStoreWithArray();
-    const { result } = renderHook(() => store.use('arr'));
-  
-    expect(result.current[0]).toEqual([]);
-    await act(() => result.current[1]([1, 2, 3]));
-    expect(result.current[0]).toEqual([1, 2, 3]);
-    await act(() => result.current[1]([]));
-    expect(result.current[0]).toEqual([]);
+  const store = newStoreWithArray();
+  const { result } = renderHook(() => store.use('arr'));
+
+  expect(result.current[0]).toEqual([]);
+  await act(() => result.current[1]([1, 2, 3]));
+  expect(result.current[0]).toEqual([1, 2, 3]);
+  await act(() => result.current[1]([]));
+  expect(result.current[0]).toEqual([]);
+});
+
+it('Should handle deeply nested updates with pathed selectors', async () => {
+  const store = newComplextStore();
+  const all = renderHook(() => store.use()).result;
+  const obj = renderHook(() => store.use('deeply.nested.nonexistant.path'))
+    .result;
+
+  expect(obj.current[0]).toEqual(undefined);
+  await act(() => obj.current[1]('new value'));
+  expect(obj.current[0]).toEqual('new value');
+  expect(all.current[0]).toEqual({
+    age: 1,
+    name: 'Dawei',
+    deeply: { nested: { object: 'test', nonexistant: { path: 'new value' } } },
+  });
+  await act(() => obj.current[1]({ object: 'works' }));
+  expect(all.current[0]).toEqual({
+    age: 1,
+    name: 'Dawei',
+    deeply: {
+      nested: { object: 'test', nonexistant: { path: { object: 'works' } } },
+    },
+  });
 });
