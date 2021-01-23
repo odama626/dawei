@@ -146,3 +146,18 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
     },
   });
 });
+
+it('Should never change setter', async () => {
+  const store = newStoreWithArray();
+  const { result } = renderHook(() => store.use('arr'));
+  const callbackStore = renderHook(() => store.use(s => s.name)).result;
+  const initial = result.current[1];
+  const initialCallback = callbackStore.current[1];
+
+  await act(() => result.current[1]([1, 2, 3]));
+  expect(result.current[1]).toBe(initial);
+
+  await act(() => callbackStore.current[1]({ name: 'different state'}))
+
+  expect(callbackStore.current[1]).toBe(initialCallback);
+});

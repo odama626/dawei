@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
-export function optionalChain(obj: any, path?: string) {
+function optionalChain(obj: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   return p.reduce((result, next) => (result ? result[next] : undefined), obj);
 }
 
-export function optionalChainMerge(obj: any, value: any, path?: string) {
+function optionalChainMerge(obj: any, value: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   let key = p.pop() || '';
   let node = p.reduce((result, next) => {
-    if(!result[next]) result[next] = {};
+    if (!result[next]) result[next] = {};
     return result ? result[next] : undefined;
   }, obj);
   if (typeof node[key] === 'object' && !Array.isArray(value)) {
@@ -28,10 +28,10 @@ export interface DaweiState {
   subscribe: (listener: Function, receiveInitial?: boolean) => () => void;
   get: (selector?: Function) => any;
   set: Function | any;
-  use: (selector?: Function | string | string[]) => any;
+  use: (selector?: Function | string) => any;
 }
 
-export function create(callback, type) {
+export function createStore(callback) {
   let listeners: Function[] = [];
   let value = callback;
   let sync = Promise.resolve();
@@ -43,9 +43,6 @@ export function create(callback, type) {
 
     if (path && typeof value !== 'object') {
       throw new Error('Cannot path into store when store is not an object');
-    }
-
-    if (path) {
     }
 
     if (typeof update === 'function') result = update(pathedValue, value);
@@ -111,22 +108,12 @@ export function create(callback, type) {
       const wrap = () => setValue(s => !s);
       return atom.subscribe(wrap, false);
     }, []);
+    let stringSetter = useCallback(value => atom.set(value, selector), [
+      selector,
+    ]);
 
     if (typeof selector === 'string') {
-      return [
-        optionalChain(atom.value, selector),
-        value => atom.set(value, selector),
-      ];
-    }
-
-    if (Array.isArray(selector)) {
-      let values: any[] = [];
-      let setters: any[] = [];
-      selector.forEach(select => {
-        values.push(optionalChain(atom.value, select));
-        setters.push(value => atom.set(value, select));
-      });
-      return [values, setters];
+      return [optionalChain(atom.value, selector), stringSetter];
     }
 
     return [selector(atom.value), atom.set];
@@ -134,6 +121,3 @@ export function create(callback, type) {
 
   return atom;
 }
-
-export const createAtom = callback => create(callback, 'atom');
-export const createStore = callback => create(callback, 'store');
