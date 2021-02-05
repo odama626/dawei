@@ -2,32 +2,31 @@
 
 Simple and fast state management for React.
 
-Inspired by Zustand and Recoil.  without the context or the fluff.
+Inspired by Zustand and Recoil. without the context or the fluff.
 
 ```js
-// Create your atoms and derivatives
-import { createAtom, createStore } from 'dawei';
+import { createStore } from 'dawei';
 
-const textAtom = createAtom('Hello');
-const uppercaseAtom = createAtom(get => get(textAtom).toUpperCase());
-
-// yes you can create stores too
-const counterStore = createStore((get, set) => ({
-  count: 0,
-  increment: () => set({ count: get().count + 1 }),
-  decrement: () => set({ count: get().count - 1 })
-}));
+const formStore = createStore({});
 
 // Use them anywhere in your app and they stay synced
 const Input = () => {
-  const [text, setText] = textAtom.use();
-  return <input value={text} onChange={(e) => setText(e.target.value)} />
-}
+  const [name, setName] = formStore.use('name');
+  const [email, setEmail] = formState.use('email');
 
-const Uppercase = () => {
-  const [uppercase] = uppercaseAtom.use();
-  return <div>Uppercase: {uppercase}</div>
-}
+  //  you can get and set deeply nested values too, even if they don't exist
+  const [companyName, setCompanyName] = formState('company.name');
+
+  return (
+    <form>
+      <input value={name} onChange={e => setName(e.target.value)} />
+      <input value={email} onChange={e => setEmail(e.target.value)} />
+      <input
+        value={companyName}
+        onChange={e => setCompanyName(e.target.value)}
+      />
+    </form>
+  );
+};
+
 ```
-
-![Dawei](dawei-mascot.png)
