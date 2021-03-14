@@ -8,7 +8,7 @@ function newStore() {
   });
 }
 
-function newComplextStore() {
+function newComplexStore() {
   return createStore({
     name: 'Dawei',
     age: 1,
@@ -26,6 +26,12 @@ function newStoreWithArray() {
     arr: [],
   });
 }
+
+it('Should handle empty initializer', async () => {
+  const store = createStore();
+  await store.set({ a: { b: { c: 'test'}}});
+  expect(store.get()).toEqual({ a: { b: { c: 'test' } } });
+});
 
 it('Should render hook', async () => {
   const store = newStore();
@@ -98,7 +104,7 @@ it('Should handle string selectors with pathed setters', async () => {
 });
 
 it('Should handle deeply nested updates with pathed selectors', async () => {
-  const store = newComplextStore();
+  const store = newComplexStore();
   const all = renderHook(() => store.use()).result;
   const obj = renderHook(() => store.use('deeply.nested.object')).result;
 
@@ -124,7 +130,7 @@ it('Should handle arrays with scoped selectors', async () => {
 });
 
 it('Should handle deeply nested updates with pathed selectors', async () => {
-  const store = newComplextStore();
+  const store = newComplexStore();
   const all = renderHook(() => store.use()).result;
   const obj = renderHook(() => store.use('deeply.nested.nonexistant.path'))
     .result;
@@ -157,7 +163,7 @@ it('Should never change setter', async () => {
   await act(() => result.current[1]([1, 2, 3]));
   expect(result.current[1]).toBe(initial);
 
-  await act(() => callbackStore.current[1]({ name: 'different state'}))
+  await act(() => callbackStore.current[1]({ name: 'different state' }));
 
   expect(callbackStore.current[1]).toBe(initialCallback);
 });

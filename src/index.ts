@@ -31,12 +31,12 @@ export interface DaweiState {
   use: (selector?: Function | string) => any;
 }
 
-export function createStore(callback) {
+export function createStore(initialState: Function | Object = {}, storeName: string) {
   let listeners: Function[] = [];
-  let value = callback;
+  let value = initialState;
   let sync = Promise.resolve();
 
-  let updateListeners = () => listeners.forEach(listener => listener(value));
+  let updateListeners = path => listeners.forEach(listener => listener(value, path));
   let set = async (update, path?: string) => {
     let result = update;
     let pathedValue = optionalChain(value, path);
@@ -57,7 +57,7 @@ export function createStore(callback) {
       } else {
         value = result;
       }
-      updateListeners();
+      updateListeners(path);
     }
   };
 
@@ -67,11 +67,11 @@ export function createStore(callback) {
       () => set(update, path)
     ));
 
-  if (typeof callback === 'function') {
+  if (typeof initialState === 'function') {
     let get = atom => {
       if (!atom) return value;
       atom.listeners.push(() => {
-        let newValue = callback(() => atom.value, set);
+        let newValue = initialState(() => atom.value, set);
         if (newValue !== value) {
           setInOrder(() => newValue);
         }
@@ -79,7 +79,33 @@ export function createStore(callback) {
       return atom.value;
     };
 
-    value = callback(get, setInOrder);
+    value = initialState(get, setInOrder);
+  }
+
+  // Setup redux debugger
+  if ('window' in global) {
+    const devtoolsSymbol = Symbol('@@DEVTOOLS');
+    if ('__REDUX_DEVTOOLS_EXTENSION__' in window) {
+      let logger = window['__REDUX_DEVTOOLS_EXTENSION__'].connect({
+        name: `${document.title} - ${storeName || 'Dawei'}`,
+        value,
+        features: { dispatch: false },
+      });
+      logger.init(value);
+      listeners.push((update, path) => {
+        if (path === devtoolsSymbol) return;
+        logger.send({ type: path }, update);
+      });
+      logger.subscribe(message => {
+        console.log({ message });
+        if (message.type === 'DISPATCH' && message.state) {
+          try {
+            value = JSON.parse(message.state);
+          } catch (e) {}
+          updateListeners(devtoolsSymbol);
+        }
+      });
+    }
   }
 
   let atom: DaweiState = {
@@ -108,9 +134,7 @@ export function createStore(callback) {
       const wrap = () => setValue(s => !s);
       return atom.subscribe(wrap, false);
     }, []);
-    let stringSetter = useCallback(value => atom.set(value, selector), [
-      selector,
-    ]);
+    let stringSetter = useCallback(value => atom.set(value, selector), [selector]);
 
     if (typeof selector === 'string') {
       return [optionalChain(atom.value, selector), stringSetter];
