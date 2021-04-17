@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function optionalChain(obj: any, path?: string) {
   if (!path) return obj;
@@ -21,6 +21,8 @@ function optionalChainMerge(obj: any, value: any, path?: string) {
   }
   return obj;
 }
+
+const DEV_TOOLS = '__REDUX_DEVTOOLS_EXTENSION__';
 
 export type DaweiGetter = (selector?: Function | string) => any;
 export interface DaweiState {
@@ -70,47 +72,6 @@ export function createStore(initialState: Function | Object = {}, storeName: str
       () => set(update, path)
     ));
 
-  if (typeof initialState === 'function') {
-    let get = atom => {
-      if (!atom) return value;
-      atom.listeners.push(() => {
-        let newValue = initialState(() => atom.value, set);
-        if (newValue !== value) {
-          setInOrder(() => newValue);
-        }
-      });
-      return atom.value;
-    };
-
-    value = initialState(get, setInOrder);
-  }
-
-  // Setup redux debugger
-  if ('window' in global) {
-    if ('__REDUX_DEVTOOLS_EXTENSION__' in window) {
-      const devtoolsSymbol = Symbol('@@DEVTOOLS');
-      let logger = window['__REDUX_DEVTOOLS_EXTENSION__'].connect({
-        name: `${document.title} - ${storeName || 'Dawei'}`,
-        value,
-        features: { dispatch: false },
-      });
-      logger.init(value);
-      listeners.push((update, path) => {
-        if (path === devtoolsSymbol) return;
-        logger.send({ type: path }, update);
-      });
-      logger.subscribe(message => {
-        console.log({ message });
-        if (message.type === 'DISPATCH' && message.state) {
-          try {
-            value = JSON.parse(message.state);
-          } catch (e) {}
-          updateListeners(devtoolsSymbol);
-        }
-      });
-    }
-  }
-
   let atom: DaweiState = {
     listeners,
     get value() {
@@ -134,6 +95,10 @@ export function createStore(initialState: Function | Object = {}, storeName: str
     use: passthrough,
   };
 
+  if (typeof initialState === 'function') {
+    value = initialState(atom.set, atom.get);
+  }
+
   atom.use = function Use(selector = passthrough) {
     const [, setValue] = useState(false);
     useEffect(() => {
@@ -143,6 +108,31 @@ export function createStore(initialState: Function | Object = {}, storeName: str
     let stringSetter = useCallback(value => atom.set(value, selector), [selector]);
     return [atom.get(selector), typeof selector === 'string' ? stringSetter : atom.set];
   };
+
+  // Setup redux debugger
+  if ('window' in global) {
+    if (DEV_TOOLS in window) {
+      const devtoolsSymbol = Symbol('@@DEVTOOLS');
+      let logger = window[DEV_TOOLS].connect({
+        name: `${document.title} - ${storeName || 'Dawei'}`,
+        value,
+        features: { dispatch: false },
+      });
+      logger.init(value);
+      listeners.push((update, path) => {
+        if (path === devtoolsSymbol) return;
+        logger.send({ type: path }, update);
+      });
+      logger.subscribe(message => {
+        if (message.type === 'DISPATCH' && message.state) {
+          try {
+            value = JSON.parse(message.state);
+          } catch (e) {}
+          updateListeners(devtoolsSymbol);
+        }
+      });
+    }
+  }
 
   return atom;
 }

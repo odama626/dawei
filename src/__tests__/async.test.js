@@ -8,17 +8,8 @@ const expectSubscriptionSequence = (sequence, done) => {
   };
 };
 
-it(`works like atom`, async () => {
-  const textAtom = createStore('test');
-  const uppercaseAtom = createStore(get => get(textAtom).toUpperCase());
-
-  expect(uppercaseAtom.get()).toEqual('TEST');
-  await textAtom.set('Another test');
-  expect(uppercaseAtom.get()).toEqual('ANOTHER TEST');
-});
-
 it('Async set', done => {
-  const asyncAtom = createStore({});
+  const asyncAtom = createStore();
 
   asyncAtom.set(() =>
     fetch('https://jsonplaceholder.typicode.com/posts/1').then(response => response.json())
