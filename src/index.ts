@@ -22,14 +22,17 @@ function optionalChainMerge(obj: any, value: any, path?: string) {
   return obj;
 }
 
+export type DaweiGetter = (selector?: Function | string) => any;
 export interface DaweiState {
   listeners: Function[];
   value: any;
   subscribe: (listener: Function, receiveInitial?: boolean) => () => void;
-  get: (selector?: Function) => any;
+  get: DaweiGetter;
   set: Function | any;
-  use: (selector?: Function | string) => any;
+  use: DaweiGetter;
 }
+
+const passthrough = e => e;
 
 export function createStore(initialState: Function | Object = {}, storeName: string) {
   let listeners: Function[] = [];
@@ -84,8 +87,8 @@ export function createStore(initialState: Function | Object = {}, storeName: str
 
   // Setup redux debugger
   if ('window' in global) {
-    const devtoolsSymbol = Symbol('@@DEVTOOLS');
     if ('__REDUX_DEVTOOLS_EXTENSION__' in window) {
+      const devtoolsSymbol = Symbol('@@DEVTOOLS');
       let logger = window['__REDUX_DEVTOOLS_EXTENSION__'].connect({
         name: `${document.title} - ${storeName || 'Dawei'}`,
         value,
@@ -123,24 +126,22 @@ export function createStore(initialState: Function | Object = {}, storeName: str
         listeners.splice(index - 1, 1);
       };
     },
-    get: (selector = e => e) => selector(value),
+    get: (selector = passthrough) => {
+      if (typeof selector === 'string') return optionalChain(value, selector);
+      return selector(value);
+    },
     set: setInOrder,
-    use: e => e,
+    use: passthrough,
   };
 
-  atom.use = function Use(selector = e => e) {
+  atom.use = function Use(selector = passthrough) {
     const [, setValue] = useState(false);
     useEffect(() => {
       const wrap = () => setValue(s => !s);
       return atom.subscribe(wrap, false);
     }, []);
     let stringSetter = useCallback(value => atom.set(value, selector), [selector]);
-
-    if (typeof selector === 'string') {
-      return [optionalChain(atom.value, selector), stringSetter];
-    }
-
-    return [selector(atom.value), atom.set];
+    return [atom.get(selector), typeof selector === 'string' ? stringSetter : atom.set];
   };
 
   return atom;

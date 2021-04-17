@@ -21,9 +21,7 @@ it('Async set', done => {
   const asyncAtom = createStore({});
 
   asyncAtom.set(() =>
-    fetch('https://jsonplaceholder.typicode.com/posts/1').then(response =>
-      response.json()
-    )
+    fetch('https://jsonplaceholder.typicode.com/posts/1').then(response => response.json())
   );
 
   let expected = [
@@ -31,8 +29,7 @@ it('Async set', done => {
     {
       userId: 1,
       id: 1,
-      title:
-        'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
+      title: 'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
       body:
         'quia et suscipit\n' +
         'suscipit recusandae consequuntur expedita et cum\n' +
@@ -52,9 +49,7 @@ it('Set', done => {
   atom.subscribe(expectSubscriptionSequence(expected, done));
 
   let sequence = Promise.resolve();
-  expected
-    .slice(1)
-    .forEach(value => (sequence = sequence.then(() => atom.set(value))));
+  expected.slice(1).forEach(value => (sequence = sequence.then(() => atom.set(value))));
 });
 
 it('Multiple subscriptions', () => {
@@ -71,16 +66,18 @@ it('Multiple subscriptions', () => {
       });
     });
 
-  let promises = [
-    createListener(),
-    createListener(),
-    createListener(),
-    createListener(),
-  ];
+  let promises = [createListener(), createListener(), createListener(), createListener()];
 
   let sequence = Promise.resolve();
-  expected
-    .slice(1)
-    .forEach(value => (sequence = sequence.then(() => atom.set(value))));
+  expected.slice(1).forEach(value => (sequence = sequence.then(() => atom.set(value))));
   return Promise.all(promises);
+});
+
+it('Should handle pathed strings for getters', async () => {
+  const atom = createStore('test');
+
+  expect(atom.get()).toEqual('test');
+  await atom.set({ this: { is: 'nested' } });
+  expect(atom.get('deeply.nested.nonexistant.path')).toEqual(undefined);
+  expect(atom.get()).toEqual({ this: { is: 'nested' } });
 });
