@@ -1,6 +1,6 @@
 {
   "name": "dawei",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/index.module.js",
@@ -47,7 +47,7 @@
     "build": "microbundle build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "prepublishOnly": "npm run test -- --watchAll=false"
+    "prepublishOnly": "npm run test -- --watchAll=false; npm run build"
   },
   "browserslist": [
     ">0.2%",

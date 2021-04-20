@@ -25,18 +25,19 @@ function optionalChainMerge(obj: any, value: any, path?: string) {
 const DEV_TOOLS = '__REDUX_DEVTOOLS_EXTENSION__';
 
 export type DaweiGetter = (selector?: Function | string) => any;
+export type DaweiSetter = Function | any;
 export interface DaweiState {
   listeners: Function[];
   value: any;
   subscribe: (listener: Function, receiveInitial?: boolean) => () => void;
   get: DaweiGetter;
-  set: Function | any;
+  set: DaweiSetter;
   use: DaweiGetter;
 }
 
 const passthrough = e => e;
 
-export function createStore(initialState: Function | Object = {}, storeName: string) {
+export function createStore(initialState: Function | Object = {}, storeName?: string) {
   let listeners: Function[] = [];
   let value = initialState;
   let sync = Promise.resolve();
