@@ -33,6 +33,7 @@ export interface DaweiState {
   get: DaweiGetter;
   set: DaweiSetter;
   use: DaweiGetter;
+  resolve: () => Promise<void>;
 }
 
 const passthrough = e => e;
@@ -94,6 +95,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
     },
     set: setInOrder,
     use: passthrough,
+    resolve: () => Promise.resolve(sync).then(passthrough, passthrough),
   };
 
   if (typeof initialState === 'function') {
