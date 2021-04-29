@@ -26,6 +26,10 @@ const DEV_TOOLS = '__REDUX_DEVTOOLS_EXTENSION__';
 
 export type DaweiGetter = (selector?: Function | string) => any;
 export type DaweiSetter = Function | any;
+
+interface DaweiSetterOptions {
+  overwrite?: boolean;
+}
 export interface DaweiState {
   listeners: Function[];
   value: any;
@@ -44,7 +48,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   let sync = Promise.resolve();
 
   let updateListeners = path => listeners.forEach(listener => listener(value, path));
-  let set = async (update, path?: string) => {
+  let set = async (update, path?: string, { overwrite = false} = {}) => {
     let result = update;
     let pathedValue = optionalChain(value, path);
 
@@ -55,7 +59,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
     if (typeof update === 'function') result = update(pathedValue, value);
     result = await Promise.resolve(result);
     if (result !== pathedValue) {
-      if (typeof value === 'object') {
+      if (typeof value === 'object' && !overwrite) {
         if (path) {
           optionalChainMerge(value, result, path);
         } else {
@@ -68,10 +72,10 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
     }
   };
 
-  let setInOrder = (update, path?: string) =>
+  let setInOrder = (update, path?: string, options?: DaweiSetterOptions) =>
     (sync = sync.then(
-      () => set(update, path),
-      () => set(update, path)
+      () => set(update, path, options),
+      () => set(update, path, options)
     ));
 
   let atom: DaweiState = {
