@@ -112,14 +112,12 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
         wrap = (value, path) => {
           if (!path || path.includes(selector)) {
             setValue(s => !s);
-          } else {
-            console.log('skipped update', { value, path, selector });
           }
         };
       }
       return atom.subscribe(wrap, false);
     }, [selector]);
-    
+
     let stringSetter = useCallback(value => atom.set(value, selector), [selector]);
     return [atom.get(selector), typeof selector === 'string' ? stringSetter : atom.set];
   };
