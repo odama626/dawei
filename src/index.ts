@@ -6,7 +6,7 @@ function optionalChain(obj: any, path?: string) {
   return p.reduce((result, next) => (result ? result[next] : undefined), obj);
 }
 
-function optionalChainMerge(obj: any, value: any, path?: string) {
+function optionalChainMerge(obj: any, value: any, path?: string, overwrite?: boolean) {
   if (!path) return obj;
   let p = path.split('.');
   let key = p.pop() || '';
@@ -14,7 +14,7 @@ function optionalChainMerge(obj: any, value: any, path?: string) {
     if (!result[next]) result[next] = {};
     return result ? result[next] : undefined;
   }, obj);
-  if (typeof node[key] === 'object' && !Array.isArray(value)) {
+  if (typeof node[key] === 'object' && !Array.isArray(value) && !overwrite) {
     node[key] = { ...node[key], ...value };
   } else {
     node[key] = value;
@@ -28,7 +28,7 @@ export type DaweiGetter = (selector?: Function | string) => any;
 export type DaweiSetter = Function | any;
 
 interface DaweiSetterOptions {
-  overwrite?: boolean;
+  overwrite: boolean;
 }
 export interface DaweiState {
   listeners: Function[];
@@ -48,7 +48,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   let sync = Promise.resolve();
 
   let updateListeners = path => listeners.forEach(listener => listener(value, path));
-  let set = async (update, path?: string, { overwrite = false} = {}) => {
+  let set = async (update, path?: string, { overwrite = false } = {}) => {
     let result = update;
     let pathedValue = optionalChain(value, path);
 
@@ -59,9 +59,9 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
     if (typeof update === 'function') result = update(pathedValue, value);
     result = await Promise.resolve(result);
     if (result !== pathedValue) {
-      if (typeof value === 'object' && !overwrite) {
+      if (typeof value === 'object') {
         if (path) {
-          optionalChainMerge(value, result, path);
+          optionalChainMerge(value, result, path, overwrite);
         } else {
           Object.assign(value, result);
         }
