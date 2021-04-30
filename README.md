@@ -20,7 +20,7 @@ const Input = () => {
   const [email, setEmail] = formStore.use('email');
 
   //  you can get and set deeply nested values too, even if they don't exist
-  const [companyName, setCompanyName] = formStore('company.name');
+  const [companyName, setCompanyName] = formStore.use('company.name');
 
   return (
     <form>
