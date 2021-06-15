@@ -46,7 +46,7 @@ const passthrough = e => e;
 export function createStore(initialState: Function | Object = {}, storeName?: string) {
   let listeners: Function[] = [];
   let value = initialState;
-  let sync = Promise.resolve();
+  let sync: Promise<any> = Promise.resolve();
 
   function debounce(callback, delay) {
     let timeout;
