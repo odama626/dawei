@@ -82,3 +82,25 @@ let unsubscribe = formStore.subscribe(state => {
 - resolve()
   - mostly used internally or for testing libraries
   - since all set values accept async functions the entire store is promise based and is eventually consistent. chaining on resolve will guarentee that all of the changes made to the store will have settled.
+
+### Changelog
+Version 0.11.0
+
+chainMerge was rewritten to better handle pathing into arrays and now treats all numeric values in paths as array indexes
+
+fixes a bug in version 0.10.0-alpha where promises had to be wrapped in functions
+
+```js
+// {"arr":[]}
+store.set({ test: 'through array'}, 'arr.0.test.1.ok')
+//old chainMerge
+// {"arr":[{"test":{"1":{"ok":{"test":"through array"}}}}]}
+
+// new chainMerge
+// {"arr":[{"test":[null,{"ok":{"test":"through array"}}]}]}
+
+```
+
+Version 0.10.0-alpha
+
+This release makes use of unstable_batchedUpdates from react-dom to limit the number of rerenders that happen from making changes.  This release also works slightly differently, it will merge synchronously if the update is a function 

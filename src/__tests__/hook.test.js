@@ -58,6 +58,9 @@ it('Should handle basic set updates', async () => {
     age: 7,
     newKey: 'newValue',
   });
+
+  await act(() => store.set(Promise.resolve(10), 'age'))
+  expect(result.current[0].age).toEqual(10);
 });
 
 it('Should handle basic local set updates', async () => {
@@ -127,6 +130,10 @@ it('Should handle arrays with scoped selectors', async () => {
   expect(result.current[0]).toEqual([1, 2, 3]);
   await act(() => result.current[1]([]));
   expect(result.current[0]).toEqual([]);
+
+  await act(() => store.set({ test: 'through array'}, 'arr.0.test.1.ok'))
+  // await act(() => result.current[1]({ test: 'through array'},'0.test.1.ok'))
+  expect(result.current[0]).toEqual([{ test: [,{ ok: { test: 'through array'}}]}])
 });
 
 it('Should handle deeply nested updates with pathed selectors', async () => {
@@ -152,6 +159,7 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
     },
   });
 });
+
 
 it('Should never change setter', async () => {
   const store = newStoreWithArray();
