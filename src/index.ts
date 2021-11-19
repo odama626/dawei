@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { unstable_batchedUpdates } from 'react-dom';
 
 function optionalChain(obj: any, path?: string) {
   if (!path) return obj;
@@ -45,9 +46,28 @@ const passthrough = e => e;
 export function createStore(initialState: Function | Object = {}, storeName?: string) {
   let listeners: Function[] = [];
   let value = initialState;
-  let sync = Promise.resolve();
+  let sync: Promise<any> = Promise.resolve();
 
-  let updateListeners = path => listeners.forEach(listener => listener(value, path));
+  function debounce(callback, delay) {
+    let timeout;
+    let paths: any = [];
+    let resolves: Function[] = []
+    return async function (path) {
+      clearTimeout(timeout);
+      paths.push(path);
+      timeout = setTimeout(() => {
+        unstable_batchedUpdates(() => {
+          paths.forEach(path => callback(path));
+          paths = [];
+          resolves.forEach(resolve => resolve());
+          resolves = [];
+        });
+      }, delay);
+      return new Promise(resolve => resolves.push(resolve))
+    };
+  }
+
+  let updateListeners = debounce(path => listeners.forEach(listener => listener(value, path)), 0);
   let set = async (update, path?: string, { overwrite = false } = {}) => {
     let result = update;
     let pathedValue = optionalChain(value, path);
@@ -56,8 +76,10 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
       throw new Error('Cannot path into store when store is not an object');
     }
 
-    if (typeof update === 'function') result = update(pathedValue, value);
-    result = await Promise.resolve(result);
+    if (typeof update === 'function') {
+      result = update(pathedValue, value);
+      if (result instanceof Promise) result = await Promise.resolve(result);
+    }
     if (result !== pathedValue) {
       if (typeof value === 'object') {
         if (path) {
@@ -68,7 +90,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
       } else {
         value = result;
       }
-      updateListeners(path);
+      return updateListeners(path);
     }
   };
 
