@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
+import chainMerge from './chainMerge';
 
-function optionalChain(obj: any, path?: string) {
+export { chainMerge };
+
+export function optionalChain(obj: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   return p.reduce((result, next) => (result ? result[next] : undefined), obj);
 }
 
-function optionalChainMerge(obj: any, value: any, path?: string, overwrite?: boolean) {
+function optionalChainMerge(obj: any, value: any, path?: string, { overwrite = false } = {}) {
   if (!path) return obj;
   let p = path.split('.');
   let key = p.pop() || '';
@@ -51,7 +54,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   function debounce(callback, delay) {
     let timeout;
     let paths: any = [];
-    let resolves: Function[] = []
+    let resolves: Function[] = [];
     return async function (path) {
       clearTimeout(timeout);
       paths.push(path);
@@ -63,7 +66,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
           resolves = [];
         });
       }, delay);
-      return new Promise(resolve => resolves.push(resolve))
+      return new Promise(resolve => resolves.push(resolve));
     };
   }
 
@@ -76,14 +79,12 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
       throw new Error('Cannot path into store when store is not an object');
     }
 
-    if (typeof update === 'function') {
-      result = update(pathedValue, value);
-      if (result instanceof Promise) result = await Promise.resolve(result);
-    }
+    if (typeof update === 'function') result = update(pathedValue, value);
+    if (result instanceof Promise) result = await Promise.resolve(result);
     if (result !== pathedValue) {
       if (typeof value === 'object') {
         if (path) {
-          optionalChainMerge(value, result, path, overwrite);
+          chainMerge(value, result, path, { overwrite });
         } else {
           Object.assign(value, result);
         }

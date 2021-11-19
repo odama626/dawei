@@ -1,6 +1,6 @@
 {
   "name": "dawei",
-  "version": "0.10.0-alpha",
+  "version": "0.11.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/index.module.js",
@@ -44,6 +44,7 @@
   },
   "scripts": {
     "build": "microbundle build",
+    "watch": "microbundle watch",
     "test": "react-scripts test --env=jsdom",
     "prepublishOnly": "npm run test -- --watchAll=false; npm run build"
   },
