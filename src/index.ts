@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import produce from 'immer';
+import React, { useCallback, useEffect, useState } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import chainMerge from './chainMerge';
 
@@ -8,22 +9,6 @@ export function optionalChain(obj: any, path?: string) {
   if (!path) return obj;
   let p = path.split('.');
   return p.reduce((result, next) => (result ? result[next] : undefined), obj);
-}
-
-function optionalChainMerge(obj: any, value: any, path?: string, { overwrite = false } = {}) {
-  if (!path) return obj;
-  let p = path.split('.');
-  let key = p.pop() || '';
-  let node = p.reduce((result, next) => {
-    if (!result[next]) result[next] = {};
-    return result ? result[next] : undefined;
-  }, obj);
-  if (typeof node[key] === 'object' && !Array.isArray(value) && !overwrite) {
-    node[key] = { ...node[key], ...value };
-  } else {
-    node[key] = value;
-  }
-  return obj;
 }
 
 const DEV_TOOLS = '__REDUX_DEVTOOLS_EXTENSION__';
@@ -71,28 +56,39 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   }
 
   let updateListeners = debounce(path => listeners.forEach(listener => listener(value, path)), 0);
+
   let set = async (update, path?: string, { overwrite = false } = {}) => {
-    let result = update;
-    let pathedValue = optionalChain(value, path);
+    let shouldNotify = false, replacementValue;
+    value = await produce(value, async draftValue => {
+      let result = update;
+      let pathedValue = optionalChain(draftValue, path);
 
-    if (path && typeof value !== 'object') {
-      throw new Error('Cannot path into store when store is not an object');
-    }
-
-    if (typeof update === 'function') result = update(pathedValue, value);
-    if (result instanceof Promise) result = await Promise.resolve(result);
-    if (result !== pathedValue) {
-      if (typeof value === 'object') {
-        if (path) {
-          chainMerge(value, result, path, { overwrite });
-        } else {
-          Object.assign(value, result);
-        }
-      } else {
-        value = result;
+      if (path && typeof draftValue !== 'object') {
+        throw new Error('Cannot path into store when store is not an object');
       }
-      return updateListeners(path);
-    }
+
+      if (typeof update === 'function') result = update(pathedValue, draftValue);
+      if (result instanceof Promise) result = await Promise.resolve(result);
+      if (result !== pathedValue) {
+        if (typeof draftValue === 'object') {
+          if (path) {
+            chainMerge(draftValue, result, path, { overwrite });
+          } else {
+            // object assign does not work with produce
+            // Object.assign(draftValue, result);
+            Object.entries(result).forEach(([key, value]) => (draftValue[key] = value));
+          }
+        } else {
+          draftValue = result;
+          // immer produce doesn't handle this case correctly
+          replacementValue = result;
+        }
+        shouldNotify = true;
+        return;
+      }
+    });
+    if (replacementValue) value = replacementValue;
+    if (shouldNotify) return updateListeners(path);
   };
 
   let setInOrder = (update, path?: string, options?: DaweiSetterOptions) =>
