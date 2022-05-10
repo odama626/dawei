@@ -29,7 +29,7 @@ function newStoreWithArray() {
 
 it('Should handle empty initializer', async () => {
   const store = createStore();
-  await store.set({ a: { b: { c: 'test'}}});
+  await store.set({ a: { b: { c: 'test' } } });
   expect(store.get()).toEqual({ a: { b: { c: 'test' } } });
 });
 
@@ -59,7 +59,7 @@ it('Should handle basic set updates', async () => {
     newKey: 'newValue',
   });
 
-  await act(() => store.set(Promise.resolve(10), 'age'))
+  await act(() => store.set(Promise.resolve(10), 'age'));
   expect(result.current[0].age).toEqual(10);
 });
 
@@ -131,16 +131,15 @@ it('Should handle arrays with scoped selectors', async () => {
   await act(() => result.current[1]([]));
   expect(result.current[0]).toEqual([]);
 
-  await act(() => store.set({ test: 'through array'}, 'arr.0.test.1.ok'))
+  await act(() => store.set({ test: 'through array' }, 'arr.0.test.1.ok'));
   // await act(() => result.current[1]({ test: 'through array'},'0.test.1.ok'))
-  expect(result.current[0]).toEqual([{ test: [,{ ok: { test: 'through array'}}]}])
+  expect(result.current[0]).toEqual([{ test: [, { ok: { test: 'through array' } }] }]);
 });
 
 it('Should handle deeply nested updates with pathed selectors', async () => {
   const store = newComplexStore();
   const all = renderHook(() => store.use()).result;
-  const obj = renderHook(() => store.use('deeply.nested.nonexistant.path'))
-    .result;
+  const obj = renderHook(() => store.use('deeply.nested.nonexistant.path')).result;
 
   expect(obj.current[0]).toEqual(undefined);
   await act(() => obj.current[1]('new value'));
@@ -160,7 +159,6 @@ it('Should handle deeply nested updates with pathed selectors', async () => {
   });
 });
 
-
 it('Should never change setter', async () => {
   const store = newStoreWithArray();
   const { result } = renderHook(() => store.use('arr'));
@@ -174,4 +172,17 @@ it('Should never change setter', async () => {
   await act(() => callbackStore.current[1]({ name: 'different state' }));
 
   expect(callbackStore.current[1]).toBe(initialCallback);
+});
+
+it('Should handle back to back updates on separate branches', async () => {
+  const store = createStore();
+  const hookA = renderHook(() => store.use('items'));
+  const hookB = renderHook(() => store.use('another.set.items'));
+
+  await act(() => store.set([1, 2, 3], 'items'));
+  await act(() => store.set({ 1: 'test' }, 'another.set.items'));
+
+  expect(hookA.result.current[0]).toEqual([1, 2, 3]);
+  expect(hookB.result.current[0]).toEqual({ 1: 'test' });
+  expect(hookB.result.current[0][hookA.result.current[0][0]]).toBe('test');
 });

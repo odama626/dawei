@@ -56,39 +56,28 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   }
 
   let updateListeners = debounce(path => listeners.forEach(listener => listener(value, path)), 0);
-
   let set = async (update, path?: string, { overwrite = false } = {}) => {
-    let shouldNotify = false, replacementValue;
-    value = await produce(value, async draftValue => {
-      let result = update;
-      let pathedValue = optionalChain(draftValue, path);
+    let result = update;
+    let pathedValue = optionalChain(value, path);
 
-      if (path && typeof draftValue !== 'object') {
-        throw new Error('Cannot path into store when store is not an object');
-      }
+    if (path && typeof value !== 'object') {
+      throw new Error('Cannot path into store when store is not an object');
+    }
 
-      if (typeof update === 'function') result = update(pathedValue, draftValue);
-      if (result instanceof Promise) result = await Promise.resolve(result);
-      if (result !== pathedValue) {
-        if (typeof draftValue === 'object') {
-          if (path) {
-            chainMerge(draftValue, result, path, { overwrite });
-          } else {
-            // object assign does not work with produce
-            // Object.assign(draftValue, result);
-            Object.entries(result).forEach(([key, value]) => (draftValue[key] = value));
-          }
+    if (typeof update === 'function') result = update(pathedValue, value);
+    if (result instanceof Promise) result = await Promise.resolve(result);
+    if (result !== pathedValue) {
+      if (typeof value === 'object') {
+        if (path) {
+          chainMerge(value, result, path, { overwrite });
         } else {
-          draftValue = result;
-          // immer produce doesn't handle this case correctly
-          replacementValue = result;
+          Object.assign(value, result);
         }
-        shouldNotify = true;
-        return;
+      } else {
+        value = result;
       }
-    });
-    if (replacementValue) value = replacementValue;
-    if (shouldNotify) return updateListeners(path);
+      return updateListeners(path);
+    }
   };
 
   let setInOrder = (update, path?: string, options?: DaweiSetterOptions) =>

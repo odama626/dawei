@@ -9,11 +9,7 @@ function isNumber(s) {
 // integer indices while expanding object will result in arrays being added
 // ex: 'test.here.1' will make here an array
 export default function chainMerge(obj: any, value: any, path?: string, ops: MergeOptions = {}) {
-  if (!path) {
-    Object.entries(value).forEach(([key, value]) => obj[key] = value)
-    return obj;
-  }
-  //{...obj, value}//Object.assign(obj, value);
+  if (!path) Object.assign(obj, value);
   let p = path.split('.');
   let cursor = obj;
   let n,
