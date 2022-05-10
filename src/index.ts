@@ -1,4 +1,3 @@
-import produce from 'immer';
 import React, { useCallback, useEffect, useState } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import chainMerge from './chainMerge';

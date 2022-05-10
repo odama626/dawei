@@ -1,5 +1,4 @@
 import { createStore } from '../index';
-import { produce } from 'immer'
 
 const expectSubscriptionSequence = (sequence, done) => {
   let values = sequence.slice();
