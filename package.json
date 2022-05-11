@@ -1,6 +1,6 @@
 {
   "name": "dawei",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/index.module.js",
@@ -32,14 +32,14 @@
     "readme.md"
   ],
   "devDependencies": {
-    "@testing-library/react-hooks": "^7.0.2",
+    "@testing-library/react-hooks": "^8.0.0",
     "@types/jest": "^27.4.1",
-    "@types/react": "^17.0.11",
-    "microbundle": "^0.13.3",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-scripts": "3.4.3",
-    "typescript": "^4.3.2"
+    "@types/react": "^18.0.9",
+    "microbundle": "^0.15.0",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-scripts": "^5.0.1",
+    "typescript": "^4.6.4"
   },
   "scripts": {
     "build": "microbundle build",

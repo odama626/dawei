@@ -1,6 +1,8 @@
 # dawei... because it is da wei
 
-1.0.0 is coming!
+Warning! for concurrent react must use version >= 0.14.0
+
+versions less 0.14.0 can fail due to the way forceUpdate was written
 
 the api has stabilized and is pretty solid at this point and I don't forsee any more breaking changes needing to be made.  If that remains the case for a while that's cause for version 1.
 
