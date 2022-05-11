@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import chainMerge from './chainMerge';
 
@@ -116,7 +116,7 @@ export function createStore(initialState: Function | Object = {}, storeName?: st
   atom.use = function Use(selector = passthrough) {
     const forceUpdate = useReducer(c => c + 1, 0)[1];
     useEffect(() => {
-      let wrap = forceUpdate;
+      let wrap: Function = forceUpdate;
       if (typeof selector === 'string') {
         wrap = (value, path) => {
           if (!path || path.includes(selector)) {
