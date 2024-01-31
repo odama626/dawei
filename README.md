@@ -1,11 +1,14 @@
 # dawei... because it is da wei
 
+<a href="https://www.npmjs.com/package/dawei">
+  <img src="https://img.shields.io/npm/v/dawei" alt="npm" />
+</a>
+
 Warning! for concurrent react must use version >= 0.14.0
 
 versions less 0.14.0 can fail due to the way forceUpdate was written
 
-the api has stabilized and is pretty solid at this point and I don't forsee any more breaking changes needing to be made.  If that remains the case for a while that's cause for version 1.
-
+the api has stabilized and is pretty solid at this point and I don't forsee any more breaking changes needing to be made. If that remains the case for a while that's cause for version 1.
 
 Simple and fast state management for React.
 
@@ -28,10 +31,7 @@ const Input = () => {
     <form>
       <input value={name} onChange={e => setName(e.target.value)} />
       <input value={email} onChange={e => setEmail(e.target.value)} />
-      <input
-        value={companyName}
-        onChange={e => setCompanyName(e.target.value)}
-      />
+      <input value={companyName} onChange={e => setCompanyName(e.target.value)} />
     </form>
   );
 };
@@ -44,18 +44,19 @@ function randomBitOfApi() {
 // you can also subscribe to all changes
 let unsubscribe = formStore.subscribe(state => {
   console.log('formStore changed', state);
-})
-
+});
 ```
 
 ## API
 
 ### store = createStore(initialState, storeName?: string)
+
 - initialState: Function | Object
   - initial state object or a function that returns initial state
   - (set: DaweiSetter, get: DaweiGetter) => initialState
 
 #### store
+
 - get(selector string | function)
   - get value from the store, can be a pathed string into a nested store, or an accessor function
   - example: (both are equal)
@@ -86,6 +87,11 @@ let unsubscribe = formStore.subscribe(state => {
   - since all set values accept async functions the entire store is promise based and is eventually consistent. chaining on resolve will guarentee that all of the changes made to the store will have settled.
 
 ### Changelog
+
+Version 0.15.0
+feature: basic inferred types on get based on intial store creation
+chore: switched to using pnpm for development
+
 Version 0.11.0
 
 chainMerge was rewritten to better handle pathing into arrays and now treats all numeric values in paths as array indexes
@@ -94,15 +100,14 @@ fixes a bug in version 0.10.0-alpha where promises had to be wrapped in function
 
 ```js
 // {"arr":[]}
-store.set({ test: 'through array'}, 'arr.0.test.1.ok')
+store.set({ test: 'through array' }, 'arr.0.test.1.ok');
 //old chainMerge
 // {"arr":[{"test":{"1":{"ok":{"test":"through array"}}}}]}
 
 // new chainMerge
 // {"arr":[{"test":[null,{"ok":{"test":"through array"}}]}]}
-
 ```
 
 Version 0.10.0-alpha
 
-This release makes use of unstable_batchedUpdates from react-dom to limit the number of rerenders that happen from making changes.  This release also works slightly differently, it will merge synchronously if the update is a function 
+This release makes use of unstable_batchedUpdates from react-dom to limit the number of rerenders that happen from making changes. This release also works slightly differently, it will merge synchronously if the update is a function
