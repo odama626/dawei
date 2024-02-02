@@ -88,6 +88,9 @@ let unsubscribe = formStore.subscribe(state => {
 
 ### Changelog
 
+Version 0.16.0
+feature: basic typings on use
+
 Version 0.15.0
 feature: basic inferred types on get based on intial store creation
 chore: switched to using pnpm for development

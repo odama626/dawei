@@ -16,7 +16,7 @@ export function optionalChain<State, Path extends string>(
 
 const DEV_TOOLS = '__REDUX_DEVTOOLS_EXTENSION__';
 
-type Selector<State, Path extends string> = ((State) => any) | DeepIndex<State, Path>;
+type Selector<State, Path extends string> = ((arg0: State) => any) | DeepIndex<State, Path>;
 
 export type DaweiGetter<State, Path extends string> = (
   selector?: Selector<State, Path>
@@ -107,9 +107,17 @@ export function createStore<State extends {}>(
 
   function get<Result>(selector: (state: State) => Result): Result;
   function get<Path extends string = string>(selector: Path): DeepIndex<State, Path>;
+  function get(): State;
   function get(selector: string | ((state: State) => any) = passthrough) {
     if (typeof selector === 'string') return optionalChain(value, selector);
     return selector(value);
+  }
+
+  function use<Result>(selector: (state: State) => Result): [Result, typeof setInOrder];
+  function use<Path extends string>(selector: Path): [DeepIndex<State, Path>, (value: any) => Promise<void>];
+  function use(): [State, typeof setInOrder];
+  function use(selector: string | ((state: State) => any) = passthrough) {
+    return [get(selector), setInOrder];
   }
 
   let atom = {
@@ -129,7 +137,7 @@ export function createStore<State extends {}>(
     },
     get,
     set: setInOrder,
-    use: passthrough,
+    use,
     resolve: () => Promise.resolve(sync).then(passthrough, passthrough),
   };
 
