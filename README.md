@@ -88,6 +88,9 @@ let unsubscribe = formStore.subscribe(state => {
 
 ### Changelog
 
+Version 0.17.0
+fix: when the root was an array changes were incorrect, arrays now use assignment at root instead of Object.assign()
+
 Version 0.16.0
 feature: basic typings on use
 
