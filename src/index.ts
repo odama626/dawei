@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useReducer } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import chainMerge from './chainMerge';
-import { DeepIndex, Paths, Expand } from './types';
+import { getNextValue } from './getNextValue';
+import { DeepIndex, Expand, Paths } from './types';
 
 export { chainMerge };
 
@@ -85,15 +86,7 @@ export function createStore<State extends {}>(
     if (typeof update === 'function') result = update(pathedValue, value);
     if (result instanceof Promise) result = await Promise.resolve(result);
     if (result !== pathedValue) {
-      if (typeof value === 'object') {
-        if (path) {
-          chainMerge(value, result, path, { overwrite });
-        } else {
-          Object.assign(value, result);
-        }
-      } else {
-        value = result;
-      }
+      value = getNextValue(value, result, path, { overwrite });
       return updateListeners(path);
     }
   };
@@ -114,10 +107,29 @@ export function createStore<State extends {}>(
   }
 
   function use<Result>(selector: (state: State) => Result): [Result, typeof setInOrder];
-  function use<Path extends string>(selector: Path): [DeepIndex<State, Path>, (value: any) => Promise<void>];
+  function use<Path extends string>(
+    selector: Path
+  ): [DeepIndex<State, Path>, (value: any) => Promise<void>];
   function use(): [State, typeof setInOrder];
-  function use(selector: string | ((state: State) => any) = passthrough) {
-    return [get(selector), setInOrder];
+  function use(selector = passthrough) {
+    const forceUpdate = useReducer(c => c + 1, 0)[1];
+    useEffect(() => {
+      let wrap: Function = forceUpdate;
+      if (typeof selector === 'string') {
+        wrap = (value, path) => {
+          if (!path || path.includes(selector)) {
+            forceUpdate();
+          }
+        };
+      }
+      return atom.subscribe(wrap, false);
+    }, [selector]);
+
+    let setter =
+      typeof selector === 'string'
+        ? useCallback(value => atom.set(value, selector), [selector])
+        : atom.set;
+    return [atom.get(selector), setter];
   }
 
   let atom = {
@@ -144,24 +156,6 @@ export function createStore<State extends {}>(
   if (typeof initialState === 'function') {
     value = (initialState as InitialStateFunction<State>)(atom.set, atom.get);
   }
-
-  atom.use = function Use(selector = passthrough) {
-    const forceUpdate = useReducer(c => c + 1, 0)[1];
-    useEffect(() => {
-      let wrap: Function = forceUpdate;
-      if (typeof selector === 'string') {
-        wrap = (value, path) => {
-          if (!path || path.includes(selector)) {
-            forceUpdate();
-          }
-        };
-      }
-      return atom.subscribe(wrap, false);
-    }, [selector]);
-
-    let stringSetter = useCallback(value => atom.set(value, selector), [selector]);
-    return [atom.get(selector), typeof selector === 'string' ? stringSetter : atom.set];
-  };
 
   // Setup redux debugger
   if ('window' in global) {

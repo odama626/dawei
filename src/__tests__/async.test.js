@@ -72,3 +72,36 @@ it('Should handle pathed strings for getters', async () => {
   expect(atom.get('deeply.nested.nonexistant.path')).toEqual(undefined);
   expect(atom.get()).toEqual({ this: { is: 'nested' } });
 });
+
+it('should handle root level array slice', async () => {
+  const store = createStore([]);
+
+  await store.set(store => ['fish', ...store]);
+  expect(store.get()).toEqual(['fish']);
+
+  await store.set(store => store.slice(1));
+
+  expect(store.get()).toEqual([]);
+});
+
+it('should handle root level array concat', async () => {
+  const store = createStore([]);
+
+  await store.set(store => ['fish', ...store]);
+  expect(store.get()).toEqual(['fish']);
+
+  await store.set(store => store.concat('test'));
+
+  expect(store.get()).toEqual(['fish', 'test']);
+});
+
+it('should handle root level array to object', async () => {
+  const store = createStore([]);
+
+  await store.set(store => ['fish', ...store]);
+  expect(store.get()).toEqual(['fish']);
+
+  await store.set(store => ({}));
+
+  expect(store.get()).toEqual({});
+});
