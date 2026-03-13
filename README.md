@@ -117,3 +117,5 @@ store.set({ test: 'through array' }, 'arr.0.test.1.ok');
 Version 0.10.0-alpha
 
 This release makes use of unstable_batchedUpdates from react-dom to limit the number of rerenders that happen from making changes. This release also works slightly differently, it will merge synchronously if the update is a function
+
+built by https://sparkstonepdx.com
